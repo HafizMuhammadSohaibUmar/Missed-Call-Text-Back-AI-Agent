@@ -1,0 +1,214 @@
+{
+  "_comment": [
+    "Credentials to configure before import:",
+    "1. Twilio account SID, auth token, and sending phone number.",
+    "2. Supabase URL and service role key, or n8n Data Store credentials.",
+    "3. LiteLLM-compatible base URL and Mistral API key.",
+    "4. Optional Jobber or Housecall Pro API credentials for lead creation.",
+    "5. Business variables: business_name, business_type, owner_first_name, owner_phone_number."
+  ],
+  "name": "LeadPilot AI Missed Call Text-Back",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "twilio-missed-call",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      },
+      "id": "missed-call-webhook",
+      "name": "Twilio Missed Call Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {"value1": "={{$json.CallStatus}}", "operation": "regex", "value2": "^(no-answer|busy)$"}
+          ]
+        }
+      },
+      "id": "if-missed",
+      "name": "IF no-answer or busy",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [220, 0]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{'missed:' + $json.From}}"
+      },
+      "id": "duplicate-check",
+      "name": "Duplicate Check",
+      "type": "n8n-nodes-base.dataStore",
+      "typeVersion": 1,
+      "position": [440, -100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.LITELLM_BASE_URL + '/chat/completions'}}",
+        "authentication": "predefinedCredentialType",
+        "sendBody": true,
+        "jsonBody": "={\"model\":\"mistral/mistral-small-latest\",\"messages\":[{\"role\":\"system\",\"content\":\"Write a concise missed-call SMS for a home service business. Vary tone by time of day. Use business_name, business_type, owner_first_name. Ask the caller to reply with what they need. Return only SMS text.\"},{\"role\":\"user\",\"content\":\"business_name={{$env.BUSINESS_NAME}}, business_type={{$env.BUSINESS_TYPE}}, owner_first_name={{$env.OWNER_FIRST_NAME}}, current_time={{$now}}\"}],\"max_tokens\":120,\"temperature\":0.2}"
+      },
+      "id": "generate-sms",
+      "name": "Generate SMS with LiteLLM/Mistral",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [660, -100]
+    },
+    {
+      "parameters": {
+        "from": "={{$env.TWILIO_PHONE_NUMBER}}",
+        "to": "={{$json.From}}",
+        "message": "={{$json.choices[0].message.content}}"
+      },
+      "id": "send-sms",
+      "name": "Twilio Send SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [880, -100]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{'missed:' + $json.From}}",
+        "value": "={{$now.plus({hours:4}).toISO()}}"
+      },
+      "id": "store-duplicate",
+      "name": "Store Duplicate Window",
+      "type": "n8n-nodes-base.dataStore",
+      "typeVersion": 1,
+      "position": [1100, -100]
+    },
+    {
+      "parameters": {
+        "path": "twilio-sms-reply",
+        "httpMethod": "POST",
+        "responseMode": "onReceived"
+      },
+      "id": "reply-webhook",
+      "name": "Twilio Reply Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 360]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {"value1": "={{$json.Body.toUpperCase()}}", "operation": "regex", "value2": "^(STOP|UNSUBSCRIBE|CANCEL|QUIT|END|OPTOUT|OPT OUT)$"}
+          ]
+        }
+      },
+      "id": "if-stop",
+      "name": "IF STOP Word",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [220, 360]
+    },
+    {
+      "parameters": {
+        "from": "={{$env.TWILIO_PHONE_NUMBER}}",
+        "to": "={{$json.From}}",
+        "message": "You are opted out and will not receive further texts."
+      },
+      "id": "send-stop-confirmation",
+      "name": "Send STOP Confirmation",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [440, 260]
+    },
+    {
+      "parameters": {
+        "sessionKey": "={{$json.From}}"
+      },
+      "id": "simple-memory",
+      "name": "Simple Memory by Phone",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1,
+      "position": [440, 460]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.LITELLM_BASE_URL + '/chat/completions'}}",
+        "sendBody": true,
+        "jsonBody": "={\"model\":\"mistral/mistral-small-latest\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a home-service SMS intake agent. Gather name, service_type, address, urgency_level. Reply concisely. If complete, output JSON with complete=true and fields.\"},{\"role\":\"user\",\"content\":\"{{$json.Body}}\"}],\"max_tokens\":300,\"temperature\":0.2}"
+      },
+      "id": "ai-qualification",
+      "name": "AI Qualification via LiteLLM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [660, 460]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {"value1": "={{$json.choices[0].message.content}}", "operation": "contains", "value2": "\"complete\":true"}
+          ]
+        }
+      },
+      "id": "if-complete",
+      "name": "IF Lead Complete",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [880, 460]
+    },
+    {
+      "parameters": {
+        "from": "={{$env.TWILIO_PHONE_NUMBER}}",
+        "to": "={{$env.OWNER_PHONE_NUMBER}}",
+        "message": "={{'New missed-call lead: ' + $json.choices[0].message.content}}"
+      },
+      "id": "owner-notification",
+      "name": "Owner Notification SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1100, 360]
+    },
+    {
+      "parameters": {
+        "from": "={{$env.TWILIO_PHONE_NUMBER}}",
+        "to": "={{$json.From}}",
+        "message": "Thanks, we have your details. The team will follow up soon."
+      },
+      "id": "lead-confirmation",
+      "name": "Lead Confirmation SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1320, 360]
+    },
+    {
+      "parameters": {
+        "from": "={{$env.TWILIO_PHONE_NUMBER}}",
+        "to": "={{$json.From}}",
+        "message": "={{$json.choices[0].message.content}}"
+      },
+      "id": "continue-conversation",
+      "name": "Continue Conversation SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1100, 560]
+    }
+  ],
+  "connections": {
+    "Twilio Missed Call Webhook": {"main": [[{"node": "IF no-answer or busy", "type": "main", "index": 0}]]},
+    "IF no-answer or busy": {"main": [[{"node": "Duplicate Check", "type": "main", "index": 0}], []]},
+    "Duplicate Check": {"main": [[{"node": "Generate SMS with LiteLLM/Mistral", "type": "main", "index": 0}]]},
+    "Generate SMS with LiteLLM/Mistral": {"main": [[{"node": "Twilio Send SMS", "type": "main", "index": 0}]]},
+    "Twilio Send SMS": {"main": [[{"node": "Store Duplicate Window", "type": "main", "index": 0}]]},
+    "Twilio Reply Webhook": {"main": [[{"node": "IF STOP Word", "type": "main", "index": 0}]]},
+    "IF STOP Word": {"main": [[{"node": "Send STOP Confirmation", "type": "main", "index": 0}], [{"node": "Simple Memory by Phone", "type": "main", "index": 0}]]},
+    "Simple Memory by Phone": {"main": [[{"node": "AI Qualification via LiteLLM", "type": "main", "index": 0}]]},
+    "AI Qualification via LiteLLM": {"main": [[{"node": "IF Lead Complete", "type": "main", "index": 0}]]},
+    "IF Lead Complete": {"main": [[{"node": "Owner Notification SMS", "type": "main", "index": 0}], [{"node": "Continue Conversation SMS", "type": "main", "index": 0}]]},
+    "Owner Notification SMS": {"main": [[{"node": "Lead Confirmation SMS", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"},
+  "active": false
+}

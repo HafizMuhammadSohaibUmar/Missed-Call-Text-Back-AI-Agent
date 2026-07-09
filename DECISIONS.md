@@ -35,10 +35,10 @@ Inbound SMS replies are deduplicated by `MessageSid` stored inside the conversat
 
 STOP-style keywords are handled before any AI call. Suppressed numbers are stored in `suppression_list`, receive one opt-out confirmation, and are never texted again by the agent.
 
+## Demo Mode
+
+The browser demo at `/demo` is intentionally dry-run only. It exercises the same missed-call and reply handlers with deterministic demo overrides so portfolio viewers can see the text-back, lead qualification, owner alert, confirmation, and STOP flows without requiring live Twilio calls or sending real SMS.
+
 ## Qualification
 
 The conversation manager uses the last 10 messages for context and extracts name, service type, address, and urgency. Once complete, the system creates a lead, alerts the owner, confirms with the customer, and marks the conversation qualified.
-
-## n8n Workflow
-
-The FastAPI backend is the portfolio-grade engineering implementation. The included n8n workflow is a client-ready no-code alternative for simple deployments where a business operator prefers n8n over maintaining a custom backend.

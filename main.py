@@ -2,10 +2,12 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, Response
+from fastapi import Depends, FastAPI, Request, Response
+from fastapi.responses import HTMLResponse
 
 from config import get_settings
 from db.supabase import supabase_client
+from handlers.demo import demo_missed_call, demo_page, demo_reply
 from handlers.missed_call import handle_missed_call
 from handlers.sms_reply import handle_sms_reply
 from integrations.twilio_client import twilio_client, validate_twilio_request
@@ -36,6 +38,21 @@ async def root():
         "docs": "/docs",
         "health": "/health",
     }
+
+
+@app.get("/demo", response_class=HTMLResponse)
+async def browser_demo():
+    return await demo_page()
+
+
+@app.post("/demo/missed-call")
+async def browser_demo_missed_call(request: Request):
+    return await demo_missed_call(request)
+
+
+@app.post("/demo/reply")
+async def browser_demo_reply(request: Request):
+    return await demo_reply(request)
 
 
 @app.post("/twilio/call-status")

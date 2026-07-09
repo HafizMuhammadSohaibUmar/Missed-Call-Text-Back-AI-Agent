@@ -11,7 +11,7 @@ from services.qualification import qualify
 from utils import is_stop_message, normalize_phone
 
 
-async def handle_sms_reply(form: dict) -> dict:
+async def handle_sms_reply(form: dict, qualification_override: dict | None = None) -> dict:
     phone = normalize_phone(form.get("From", ""))
     body = form.get("Body", "").strip()
     message_sid = form.get("MessageSid", "")
@@ -44,7 +44,7 @@ async def handle_sms_reply(form: dict) -> dict:
         await supabase_client.update_conversation(conversation["id"], status=ConversationStatus.CLOSED.value)
         return {"status": "closed_max_exchanges"}
 
-    qualification = await qualify(conversation.get("messages") or [])
+    qualification = qualification_override or await qualify(conversation.get("messages") or [])
     reply = qualification["reply"]
     since = datetime.now(timezone.utc) - timedelta(hours=settings.duplicate_window_hours)
     if await supabase_client.recent_outbound_message_count(phone, since) >= settings.max_texts_per_window:

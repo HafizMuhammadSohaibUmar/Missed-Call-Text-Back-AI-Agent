@@ -33,6 +33,9 @@ This service listens for Twilio call-status webhooks, sends a fast missed-call S
 | --- | --- |
 | `POST /twilio/call-status` | Twilio call status webhook for missed calls |
 | `POST /twilio/sms-reply` | Twilio inbound SMS webhook |
+| `GET /demo` | Browser demo for missed-call and reply scenarios |
+| `POST /demo/missed-call` | Dry-run missed-call demo trigger |
+| `POST /demo/reply` | Dry-run reply/qualification demo trigger |
 | `GET /health` | Supabase, Twilio, and last-10-calls stats |
 | `GET /docs` | FastAPI OpenAPI docs |
 
@@ -111,8 +114,13 @@ For portfolio demos and Twilio trial accounts:
 
 ```env
 SMS_DRY_RUN=true
+DEMO_MODE_ENABLED=true
 ```
 
-## n8n Alternative
+Then open:
 
-The `n8n/missed_call_textback_workflow.json` file contains an importable n8n workflow design for client deployments where a no-code implementation is preferred.
+```text
+https://missed-call-text-back-ai-agent.sohaib.systems/demo
+```
+
+The browser demo is dry-run only. It shows missed-call SMS previews, incomplete intake replies, qualified lead owner alerts, customer confirmations, and STOP opt-out behavior without sending real SMS.

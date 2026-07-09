@@ -9,7 +9,7 @@ from services.sms_generator import generate_missed_call_sms
 from utils import normalize_phone
 
 
-async def handle_missed_call(form: dict) -> dict:
+async def handle_missed_call(form: dict, sms_override: str | None = None) -> dict:
     status = (form.get("CallStatus") or "").lower()
     from_number = normalize_phone(form.get("From", ""))
     to_number = normalize_phone(form.get("To", ""))
@@ -41,7 +41,7 @@ async def handle_missed_call(form: dict) -> dict:
         )
         return {"status": "rate_limited"}
 
-    body = await generate_missed_call_sms()
+    body = sms_override or await generate_missed_call_sms()
     sent = await twilio_client.send_sms(from_number, body, context_id=call_sid)
     await supabase_client.log_missed_call(
         from_number=from_number, to_number=to_number, call_sid=call_sid,
@@ -52,4 +52,4 @@ async def handle_missed_call(form: dict) -> dict:
             from_number,
             [Message(role="assistant", body=body)],
         )
-    return {"status": "text_sent" if sent else "send_failed", "text_sent": sent}
+    return {"status": "text_sent" if sent else "send_failed", "text_sent": sent, "sms_body": body}

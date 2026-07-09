@@ -25,7 +25,7 @@ async def test_missed_call_happy_path_sends_text_and_creates_thread():
          patch.object(missed_call.supabase_client, "create_conversation", new=AsyncMock(return_value={})) as create:
         result = await missed_call.handle_missed_call(form())
 
-    assert result == {"status": "text_sent", "text_sent": True}
+    assert result == {"status": "text_sent", "text_sent": True, "sms_body": "Sorry we missed you."}
     send.assert_awaited_once()
     create.assert_awaited_once()
 

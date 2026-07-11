@@ -4,15 +4,44 @@ AI-powered missed-call recovery for home-service businesses.
 
 This service listens for Twilio call-status webhooks, sends a fast missed-call SMS when a call is not answered or busy, manages the SMS conversation, qualifies the lead, alerts the owner, and stores the full thread in Supabase.
 
-## LeadPilot AI Agent Suite
+## Related AI Systems
 
-| # | Agent | Purpose | Status |
-| --- | --- | --- | --- |
-| 1 | LeadPilot AI Voice Agent | Inbound call qualification and emergency escalation. | Live |
-| 2 | Missed Call Text-Back Agent | Recover missed calls with AI-powered SMS intake. | This repo |
-| 3 | Outbound Follow-Up Agent | Campaign follow-up automation. | Planned |
-| 4 | AI Review Request Agent | Sentiment-aware review request automation. | Live demo |
-| 5 | Web Chat Lead Qualifier | Website chat qualification with lead capture. | Planned |
+| System | Purpose | Links |
+| --- | --- | --- |
+| LeadPilot AI Voice Agent | Inbound phone agent for call qualification, emergency detection, and lead logging. | [Live](https://leadpilotai.sohaib.systems/) · [Repo](https://github.com/HafizMuhammadSohaibUmar/LeadPilotAI) |
+| Missed Call Text-Back AI Agent | SMS recovery and qualification after no-answer or busy calls. | [Live](https://missed-call-text-back-ai-agent.sohaib.systems/demo) · [Repo](https://github.com/HafizMuhammadSohaibUmar/Missed-Call-Text-Back-AI-Agent) |
+| Outbound Follow-Up AI Agent | Estimate, no-show, re-engagement, and seasonal follow-up campaigns. | [Live](https://outbound-followup-ai-agent.sohaib.systems/demo) · [Repo](https://github.com/HafizMuhammadSohaibUmar/Outbound-Follow-Up-AI-Agent) |
+| AI Auto Review Request Agent | Sentiment-aware post-job review and private feedback routing. | [Live](https://ai-review-agent.sohaib.systems/demo) · [Repo](https://github.com/HafizMuhammadSohaibUmar/AI-Auto-Review-Request-Agent) |
+| Web Chat Lead Qualifier Agent | Embeddable RAG chat widget for contractor websites. | [Live](https://web-chat-lead-qualifier-agent.sohaib.systems/demo) · [Repo](https://github.com/HafizMuhammadSohaibUmar/Web-Chat-Lead-Qualifier-Agent) |
+| Personal AI Agent | Local task, planning, and calendar assistant with LangGraph tools. | [Live](https://personal-ai-agent.sohaib.systems/) · [Repo](https://github.com/HafizMuhammadSohaibUmar/Personal-AI-Agent) |
+| Invoxia AI for ERPNext | Frappe/ERPNext assistant layer for navigation, voice input foundations, and live ERP answers. | [Live](https://invoxia.sohaib.systems/) · [Repo](https://github.com/HafizMuhammadSohaibUmar/InvoxiaAI-ERPNext) |
+
+## Architecture
+
+```text
+Twilio Call Status Webhook
+  -> FastAPI /twilio/call-status
+  -> Twilio signature validation
+  -> E.164 phone normalization
+  -> suppression + duplicate + rate-limit checks
+  -> LiteLLM/Mistral missed-call SMS generation
+  -> Twilio SMS or dry-run preview
+  -> Supabase missed_calls + conversations
+
+Customer SMS Reply
+  -> FastAPI /twilio/sms-reply
+  -> STOP suppression or conversation state load
+  -> LiteLLM qualification over last 10 messages
+  -> lead creation + owner SMS + customer confirmation
+```
+
+## What It Proves
+
+- Fast webhook-to-SMS recovery for missed inbound demand.
+- Consent-aware SMS handling with STOP suppression before any AI call.
+- Conversation memory with lead extraction rather than one-off text generation.
+- Safe public demo mode that previews the exact messages without sending SMS.
+- Multi-tenant data shape through `business_id`.
 
 ## Core Flow
 

@@ -1,6 +1,6 @@
 # Decisions
 
-This service is Agent 2 in the LeadPilot AI Agent Suite: the Missed Call Text-Back Agent for home-service businesses.
+This service is the Missed Call Text-Back AI Agent for home-service businesses.
 
 ## Product Boundary
 

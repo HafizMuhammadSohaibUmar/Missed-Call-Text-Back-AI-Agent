@@ -21,30 +21,33 @@ DEMO_HTML = """<!doctype html>
   <style>
     :root {
       color-scheme: light;
-      --ink: #17202a;
-      --muted: #5d6b7a;
-      --line: #d8dee6;
-      --panel: #ffffff;
-      --soft: #f6f8fb;
-      --accent: #0f766e;
+      --ink: #F5F0E4;
+      --muted: #9A9080;
+      --line: rgba(255,255,255,0.08);
+      --panel: #18160E;
+      --soft: #0A0908;
+      --accent: #4FB39F;
+      --gold: #C49A1A;
+      --card2: #201D12;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background: var(--soft); color: var(--ink); }
-    header { padding: 24px clamp(18px, 4vw, 44px); border-bottom: 1px solid var(--line); background: #fff; }
-    h1 { margin: 0 0 6px; font-size: clamp(24px, 3vw, 34px); letter-spacing: 0; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background: radial-gradient(circle at top left, rgba(47,143,126,0.16), transparent 34%), var(--soft); color: var(--ink); }
+    header { padding: 34px clamp(18px, 5vw, 70px); border-bottom: 1px solid var(--line); background: rgba(17,16,9,0.92); }
+    h1 { margin: 0 0 8px; font-size: clamp(30px, 4vw, 54px); letter-spacing: 0; }
     p { color: var(--muted); line-height: 1.55; }
-    main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr); gap: 18px; padding: 22px clamp(18px, 4vw, 44px) 40px; }
-    section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 18px; }
+    main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr); gap: 20px; padding: 26px clamp(18px, 5vw, 70px) 46px; }
+    section { background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015)), var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
     label { display: block; font-weight: 650; margin: 14px 0 6px; }
-    input, textarea, select { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 11px 12px; font: inherit; background: #fff; }
+    input, textarea, select { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 11px 12px; font: inherit; background: #0f0e09; color: var(--ink); }
     textarea { min-height: 96px; resize: vertical; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .actions { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
-    button { border: 1px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); padding: 10px 12px; cursor: pointer; font-weight: 650; }
+    button { border: 1px solid var(--line); border-radius: 8px; background: var(--card2); color: var(--ink); padding: 10px 12px; cursor: pointer; font-weight: 650; }
     button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .badge, .sms-label { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 9px; background: #e6f4f1; color: var(--accent); font-size: 13px; font-weight: 750; }
+    .badge, .sms-label { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 9px; background: rgba(79,179,159,0.12); color: var(--accent); border: 1px solid rgba(79,179,159,0.28); font-size: 13px; font-weight: 750; }
     pre { white-space: pre-wrap; word-break: break-word; background: #0f172a; color: #e5eefb; border-radius: 8px; padding: 14px; min-height: 220px; }
-    .sms { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-top: 10px; background: #fbfcfe; }
+    .sms { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-top: 12px; background: #111009; }
+    .explain { margin-top: 14px; padding: 14px; border: 1px solid rgba(196,154,26,0.22); border-left: 3px solid var(--gold); border-radius: 10px; background: rgba(196,154,26,0.08); color: var(--muted); font-size: 14px; }
     @media (max-width: 880px) { main { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -53,6 +56,7 @@ DEMO_HTML = """<!doctype html>
     <span class="badge">Demo mode</span>
     <h1>LeadPilot AI Missed Call Text-Back Agent</h1>
     <p>Simulate a missed call, then continue the SMS intake until a home-service lead is qualified.</p>
+    <div class="explain">The demo uses the same handler flow as production, but SMS stays in dry-run preview mode so no real customer is contacted.</div>
   </header>
   <main>
     <section>

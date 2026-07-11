@@ -209,8 +209,14 @@ class SupabaseClient:
         }
 
     async def demo_snapshot(self) -> dict:
-        calls = await self._request(
-            "GET", "missed_calls",
+        async def safe_request(table: str, params: dict) -> list[dict]:
+            try:
+                return await self._request("GET", table, params=params)
+            except httpx.HTTPStatusError:
+                return []
+
+        calls = await safe_request(
+            "missed_calls",
             params={
                 "business_id": f"eq.{self.business_id}",
                 "select": "from_number,text_sent,duplicate_suppressed,created_at",
@@ -218,8 +224,8 @@ class SupabaseClient:
                 "limit": "5",
             },
         )
-        conversations = await self._request(
-            "GET", "conversations",
+        conversations = await safe_request(
+            "conversations",
             params={
                 "business_id": f"eq.{self.business_id}",
                 "select": "phone_number,status,lead_extracted,last_message_at,messages",
@@ -227,8 +233,8 @@ class SupabaseClient:
                 "limit": "5",
             },
         )
-        leads = await self._request(
-            "GET", "leads",
+        leads = await safe_request(
+            "leads",
             params={
                 "business_id": f"eq.{self.business_id}",
                 "select": "phone_number,service_type,urgency_level,created_at",

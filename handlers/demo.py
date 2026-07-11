@@ -107,6 +107,9 @@ DEMO_HTML = """<!doctype html>
       <h2>Agent Output</h2>
       <pre id="result">Run a missed call to start the demo.</pre>
       <div id="messages"></div>
+      <h2>Safe Database Preview</h2>
+      <p class="explain">Masked Supabase snapshot from the agent tables. Phone numbers and message bodies are not exposed.</p>
+      <pre id="snapshot">Loading sanitized table preview...</pre>
     </section>
   </main>
   <script>
@@ -128,6 +131,14 @@ DEMO_HTML = """<!doctype html>
       ).join("");
       return ok ? "Done" : "Failed";
     }
+    async function refreshSnapshot() {
+      try {
+        const response = await fetch("/demo/snapshot");
+        document.getElementById("snapshot").textContent = JSON.stringify(await response.json(), null, 2);
+      } catch (error) {
+        document.getElementById("snapshot").textContent = "Snapshot unavailable.";
+      }
+    }
     document.getElementById("missed-form").addEventListener("submit", async (event) => {
       event.preventDefault();
       const data = Object.fromEntries(new FormData(event.target).entries());
@@ -138,6 +149,7 @@ DEMO_HTML = """<!doctype html>
       });
       const body = await response.json();
       document.getElementById("missed-status").textContent = render(body, response.ok);
+      refreshSnapshot();
     });
     document.getElementById("reply-form").addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -153,7 +165,9 @@ DEMO_HTML = """<!doctype html>
       if (data.reply_scenario === "stop" || body.result?.status === "lead_created") {
         phoneInput.value = nextDemoPhone();
       }
+      refreshSnapshot();
     });
+    refreshSnapshot();
   </script>
 </body>
 </html>"""

@@ -9,6 +9,12 @@ from models.conversation import ConversationRecord, ConversationStatus, Message
 from models.lead import LeadRecord
 
 
+def _mask_phone(phone: str | None) -> str:
+    if not phone:
+        return ""
+    return f"{phone[:3]}***{phone[-4:]}" if len(phone) >= 7 else "***"
+
+
 class SupabaseClient:
     def __init__(self) -> None:
         settings = get_settings()
@@ -200,6 +206,73 @@ class SupabaseClient:
             "count": len(rows),
             "texts_sent": sum(1 for row in rows if row.get("text_sent")),
             "duplicate_suppressed": sum(1 for row in rows if row.get("duplicate_suppressed")),
+        }
+
+    async def demo_snapshot(self) -> dict:
+        calls = await self._request(
+            "GET", "missed_calls",
+            params={
+                "business_id": f"eq.{self.business_id}",
+                "select": "from_number,text_sent,duplicate_suppressed,created_at",
+                "order": "created_at.desc",
+                "limit": "5",
+            },
+        )
+        conversations = await self._request(
+            "GET", "conversations",
+            params={
+                "business_id": f"eq.{self.business_id}",
+                "select": "phone_number,status,lead_extracted,last_message_at,messages",
+                "order": "last_message_at.desc",
+                "limit": "5",
+            },
+        )
+        leads = await self._request(
+            "GET", "leads",
+            params={
+                "business_id": f"eq.{self.business_id}",
+                "select": "phone_number,service_type,urgency_level,created_at",
+                "order": "created_at.desc",
+                "limit": "5",
+            },
+        )
+        return {
+            "tables": {
+                "missed_calls": {
+                    "sample": [
+                        {
+                            "phone": _mask_phone(row.get("from_number")),
+                            "text_sent": bool(row.get("text_sent")),
+                            "duplicate_suppressed": bool(row.get("duplicate_suppressed")),
+                            "created_at": row.get("created_at"),
+                        }
+                        for row in calls
+                    ],
+                },
+                "conversations": {
+                    "sample": [
+                        {
+                            "phone": _mask_phone(row.get("phone_number")),
+                            "status": row.get("status"),
+                            "lead_extracted": bool(row.get("lead_extracted")),
+                            "message_count": len(row.get("messages") or []),
+                            "last_message_at": row.get("last_message_at"),
+                        }
+                        for row in conversations
+                    ],
+                },
+                "leads": {
+                    "sample": [
+                        {
+                            "phone": _mask_phone(row.get("phone_number")),
+                            "service_type": row.get("service_type"),
+                            "urgency_level": row.get("urgency_level"),
+                            "created_at": row.get("created_at"),
+                        }
+                        for row in leads
+                    ],
+                },
+            }
         }
 
     async def health_check(self) -> dict:

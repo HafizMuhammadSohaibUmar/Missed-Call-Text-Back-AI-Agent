@@ -55,6 +55,13 @@ async def browser_demo_reply(request: Request):
     return await demo_reply(request)
 
 
+@app.get("/demo/snapshot")
+async def demo_snapshot():
+    if not get_settings().demo_mode_enabled:
+        return {"enabled": False}
+    return await supabase_client.demo_snapshot()
+
+
 @app.post("/twilio/call-status")
 async def twilio_call_status(form: dict = Depends(validate_twilio_request)):
     result = await handle_missed_call(form)

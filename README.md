@@ -35,7 +35,7 @@ Customer SMS Reply
   -> lead creation + owner SMS + customer confirmation
 ```
 
-## Engineering Signals
+## Engineering Points
 
 - Twilio call-status and SMS webhooks are handled as separate but connected workflows.
 - STOP/UNSUBSCRIBE handling is checked before any AI generation or outbound message.
@@ -115,14 +115,8 @@ Call status callback: https://<your-domain>/twilio/call-status
 Incoming message webhook: https://<your-domain>/twilio/sms-reply
 ```
 
-For safe public evaluation:
 
-```env
-SMS_DRY_RUN=true
-DEMO_MODE_ENABLED=true
-```
-
-Then open:
+For demo, open:
 
 ```text
 https://missed-call-text-back-ai-agent.sohaib.systems/demo

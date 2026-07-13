@@ -1,8 +1,22 @@
 # LeadPilot AI Missed Call Text-Back Agent
 
-AI-powered missed-call recovery for home-service businesses.
+AI-powered missed-call recovery and SMS lead qualification for home-service businesses.
 
-This service listens for Twilio call-status webhooks, sends a fast missed-call SMS when a call is not answered or busy, manages the SMS conversation, qualifies the lead, alerts the owner, and stores the full thread in Supabase.
+The agent listens for Twilio call-status webhooks, identifies no-answer or busy calls, sends a fast personalized SMS, manages the reply conversation, extracts lead details, handles opt-outs, alerts the owner, and stores the full workflow in Supabase.
+
+## Live Demo
+
+- Live demo: `https://missed-call-text-back-ai-agent.sohaib.systems/demo`
+- Health check: `https://missed-call-text-back-ai-agent.sohaib.systems/health`
+- Repository: `https://github.com/HafizMuhammadSohaibUmar/Missed-Call-Text-Back-AI-Agent`
+
+How to evaluate the demo:
+
+1. Simulate a missed call with `No answer` or `Busy`.
+2. Review the generated missed-call SMS preview.
+3. Try a complete reply, a missing-address reply, and a STOP reply.
+4. Confirm the output changes between AI intake, owner alert, customer confirmation, and opt-out handling.
+5. Check the safe database preview for masked recent activity.
 
 ## Related AI Systems
 
@@ -16,75 +30,102 @@ This service listens for Twilio call-status webhooks, sends a fast missed-call S
 | Personal AI Agent | Self-hosted task, planning, and local-calendar assistant with LangGraph tools. | [Live Demo](https://personal-ai-agent.sohaib.systems/) | [Repository](https://github.com/HafizMuhammadSohaibUmar/Personal-AI-Agent) |
 | Invoxia AI for ERPNext | Frappe/ERPNext assistant layer for navigation, voice input foundations, and live ERP answers. | [Live Demo](https://invoxia.sohaib.systems/) | [Repository](https://github.com/HafizMuhammadSohaibUmar/InvoxiaAI-ERPNext) |
 
+## What This Agent Does
+
+- Receives Twilio call-status webhooks.
+- Responds only to `no-answer` and `busy` calls.
+- Validates Twilio webhook signatures.
+- Normalizes caller numbers to E.164.
+- Checks STOP suppressions before sending anything.
+- Suppresses duplicate missed-call texts within a 4-hour window.
+- Enforces a maximum of 3 texts per number per 4 hours.
+- Generates time-of-day-aware missed-call SMS copy.
+- Stores missed-call and conversation state in Supabase.
+- Handles SMS replies through a separate Twilio webhook.
+- Loads recent conversation history for lead qualification.
+- Extracts name, service type, address, and urgency.
+- Creates a lead, notifies the owner, and confirms with the customer.
+- Handles STOP, UNSUBSCRIBE, CANCEL, QUIT, END, and OPTOUT replies.
+
 ## Architecture
 
 ```text
-Twilio Call Status Webhook
-  -> FastAPI /twilio/call-status
-  -> Twilio signature validation
-  -> E.164 phone normalization
-  -> suppression + duplicate + rate-limit checks
-  -> LiteLLM/Mistral missed-call SMS generation
-  -> Twilio SMS or dry-run preview
-  -> Supabase missed_calls + conversations
+Twilio Call Status
+  |
+  | POST /twilio/call-status
+  v
+FastAPI missed-call handler
+  |
+  +--> Twilio signature validation
+  +--> phone normalization
+  +--> suppression, duplicate, and rate-limit checks
+  +--> LiteLLM: Mistral primary, Ministral fallback
+  +--> Twilio SMS or dry-run preview
+  +--> Supabase: missed_calls + conversations
 
 Customer SMS Reply
-  -> FastAPI /twilio/sms-reply
-  -> STOP suppression or conversation state load
-  -> LiteLLM qualification over last 10 messages
-  -> lead creation + owner SMS + customer confirmation
+  |
+  | POST /twilio/sms-reply
+  v
+FastAPI reply handler
+  |
+  +--> MessageSid deduplication
+  +--> STOP suppression
+  +--> conversation history
+  +--> AI qualification
+  +--> lead creation + owner alert + customer confirmation
 ```
 
-## Engineering Points
+## Conversation Flow
 
-- Twilio call-status and SMS webhooks are handled as separate but connected workflows.
-- STOP/UNSUBSCRIBE handling is checked before any AI generation or outbound message.
-- Duplicate and rate-limit checks prevent repeatedly texting the same caller.
-- Conversation state is persisted so qualification can happen across multiple replies.
-- The browser demo exercises missed-call recovery, partial replies, lead creation, owner alert previews, and opt-out behavior without sending live SMS.
+1. A call is missed or busy.
+2. The caller is checked against suppression, duplicate, and rate-limit rules.
+3. The agent sends a personalized text-back message.
+4. The customer replies with their service need.
+5. The agent asks only for missing qualification fields.
+6. When complete, a lead is created and the owner is notified.
+7. The customer receives confirmation.
+8. STOP-style replies are suppressed before any AI call.
 
-## Core Flow
-
-1. Twilio sends `CallStatus=no-answer` or `CallStatus=busy` to `/twilio/call-status`.
-2. The webhook signature is validated.
-3. The caller phone is normalized to E.164.
-4. Suppressed numbers are skipped.
-5. Duplicate missed-call texts within 4 hours are skipped.
-6. The SMS rate limit is enforced.
-7. Mistral generates a time-of-day-aware missed-call text.
-8. Twilio sends the SMS.
-9. Supabase stores the missed call and conversation thread.
-10. Replies continue at `/twilio/sms-reply` until the lead is qualified or closed.
-
-## Routes
+## API Surface
 
 | Route | Purpose |
 | --- | --- |
-| `POST /twilio/call-status` | Twilio call status webhook for missed calls |
-| `POST /twilio/sms-reply` | Twilio inbound SMS webhook |
-| `GET /demo` | Browser demo for missed-call and reply scenarios |
-| `POST /demo/missed-call` | Dry-run missed-call demo trigger |
-| `POST /demo/reply` | Dry-run reply/qualification demo trigger |
-| `GET /health` | Supabase, Twilio, and last-10-calls stats |
+| `POST /twilio/call-status` | Twilio call-status webhook for no-answer and busy calls |
+| `POST /twilio/sms-reply` | Twilio inbound SMS reply webhook |
+| `GET /demo` | Human-facing dry-run demo page |
+| `POST /demo/missed-call` | Browser missed-call simulation |
+| `POST /demo/reply` | Browser reply and qualification simulation |
+| `GET /demo/snapshot` | Sanitized public activity preview |
+| `GET /health` | Supabase, Twilio, and recent-call health |
 | `GET /docs` | FastAPI OpenAPI docs |
 
-## AI Behavior
+## Tech Stack
 
-The missed-call SMS uses time-of-day tone:
+- FastAPI and Uvicorn
+- Twilio Call Status, SMS, and RequestValidator
+- LiteLLM
+- Mistral Small primary model
+- Ministral fallback model
+- Supabase PostgREST
+- APScheduler for stale conversation cleanup
+- Pydantic Settings
+- Pytest and pytest-asyncio
+- Docker and Docker Compose
 
-- 8am-12pm: professional and energetic
-- 12pm-5pm: direct and efficient
-- 5pm-8pm: reassuring
-- 8pm-8am: apologetic after-hours message with a morning callback promise
+## Production Features
 
-Conversation replies load the last 10 messages and extract:
-
-- name
-- service type
-- address
-- urgency level
-
-When complete, the system creates a lead, notifies the owner, confirms with the customer, and closes the conversation as qualified.
+- Twilio webhook signature validation
+- E.164 phone normalization
+- STOP suppression before AI generation
+- Twilio `MessageSid` deduplication
+- 4-hour duplicate text-back window
+- Per-number SMS rate limit
+- Multi-tenant `business_id` fields
+- Conversation history stored in Supabase
+- Owner alert and customer confirmation flows
+- Dry-run demo path that does not send live SMS
+- Health endpoint with recent missed-call stats
 
 ## Local Setup
 
@@ -94,33 +135,72 @@ pip install -r requirements.txt
 uvicorn main:app --port 8002
 ```
 
-Run the Supabase migration:
+Expose the app for local Twilio testing:
+
+```bash
+ngrok http 8002
+```
+
+Configure Twilio:
+
+- Call status callback: `https://your-domain/twilio/call-status`
+- Incoming message webhook: `https://your-domain/twilio/sms-reply`
+
+## Database Setup
+
+Run the migration in Supabase SQL Editor:
 
 ```text
 db/migrations/001_init.sql
 ```
 
-## Testing
+It creates:
+
+- `conversations`
+- `suppression_list`
+- `missed_calls`
+- `leads`
+
+## Important Environment Variables
+
+```env
+PUBLIC_BASE_URL=
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_PHONE_NUMBER=
+OWNER_PHONE_NUMBER=
+MISTRAL_API_KEY=
+SUPABASE_URL=
+SUPABASE_KEY=
+SMS_DRY_RUN=true
+VALIDATE_TWILIO_SIGNATURE=true
+```
+
+## Tests
 
 ```bash
 pytest tests/ -v
 ```
 
-## Twilio Configuration
+The tests cover:
 
-Configure the Twilio phone number webhooks:
+- missed-call happy path
+- suppressed and duplicate calls
+- SMS reply qualification
+- STOP handling
+- browser demo behavior
+- health endpoint behavior
 
-```text
-Call status callback: https://<your-domain>/twilio/call-status
-Incoming message webhook: https://<your-domain>/twilio/sms-reply
+## Deployment
+
+```bash
+docker compose up --build -d
 ```
 
+Keep `SMS_DRY_RUN=true` for public browser demos. Set it to `false` only when Twilio credentials, sender compliance, and owner/customer testing controls are ready.
 
-For demo, open:
+## Current Demo Limitations
 
-```text
-https://missed-call-text-back-ai-agent.sohaib.systems/demo
-```
-
-The browser demo is dry-run only. It shows missed-call SMS previews, incomplete intake replies, qualified lead owner alerts, customer confirmations, and STOP opt-out behavior without sending real SMS.
-
+- The browser demo previews SMS instead of sending real messages.
+- Live SMS behavior depends on Twilio account configuration and regional messaging rules.
+- Jobber and Housecall Pro are not required for this agent; it only needs Twilio and Supabase.

@@ -47,22 +47,42 @@ DEMO_HTML = """<!doctype html>
     .badge, .sms-label { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 9px; background: rgba(79,179,159,0.12); color: var(--accent); border: 1px solid rgba(79,179,159,0.28); font-size: 13px; font-weight: 750; }
     pre { white-space: pre-wrap; word-break: break-word; background: #0f172a; color: #e5eefb; border-radius: 8px; padding: 14px; min-height: 220px; }
     .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 12px; margin-top: 12px; background: #111009; }
-    table { width: 100%; border-collapse: collapse; min-width: 520px; }
-    th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 10px 12px; font-size: 14px; vertical-align: top; }
+    table { width: 100%; border-collapse: collapse; min-width: 620px; table-layout: fixed; }
+    th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 10px 12px; font-size: 14px; vertical-align: top; word-break: break-word; }
     th { color: var(--ink); background: rgba(255,255,255,0.04); }
     td { color: var(--muted); }
     .empty { color: var(--muted); border: 1px dashed var(--line); border-radius: 12px; padding: 14px; margin-top: 10px; }
     .sms { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-top: 12px; background: #111009; }
     .explain { margin-top: 14px; padding: 14px; border: 1px solid rgba(196,154,26,0.22); border-left: 3px solid var(--gold); border-radius: 10px; background: rgba(196,154,26,0.08); color: var(--muted); font-size: 14px; }
-    @media (max-width: 880px) { main { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; } }
+    .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:18px; max-width:1180px; }
+    .metric { border:1px solid var(--line); border-radius:8px; background:rgba(255,255,255,0.035); padding:14px; }
+    .metric strong { display:block; color:var(--ink); margin-bottom:6px; }
+    .metric span { display:block; color:var(--muted); font-size:14px; line-height:1.5; }
+    footer { border-top:1px solid var(--line); padding:24px clamp(18px,5vw,70px); color:var(--muted); background:#0A0908; }
+    .footer-top { display:grid; grid-template-columns:minmax(0,1.4fr) 1fr 1fr; gap:18px; max-width:1180px; margin:0 auto 18px; }
+    .footer-brand a { color:var(--ink); font-size:24px; font-weight:900; text-decoration:none; }
+    .footer-brand span { color:var(--gold); }
+    .footer-brand p, .footer-col a, .footer-bottom { color:var(--muted); font-size:14px; }
+    .footer-col h4 { margin:0 0 8px; color:var(--ink); }
+    .footer-links-list { list-style:none; padding:0; margin:0; display:grid; gap:6px; }
+    .footer-links-list a { text-decoration:none; }
+    .footer-bottom { max-width:1180px; margin:0 auto; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; border-top:1px solid var(--line); padding-top:16px; }
+    .footer-bottom-links { display:flex; gap:12px; flex-wrap:wrap; }
+    .footer-bottom a { color:var(--ink); text-decoration:none; }
+    @media (max-width: 880px) { main { grid-template-columns: 1fr; } .row, .metrics, .footer-top { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <header>
     <span class="badge">Demo mode</span>
     <h1>LeadPilot AI Missed Call Text-Back Agent</h1>
-    <p>Simulate a missed call, then continue the SMS intake until a home-service lead is qualified.</p>
-    <div class="explain">The demo uses the same handler flow as production, but SMS stays in dry-run preview mode so no real customer is contacted.</div>
+    <p>Simulate a missed inbound call, generate the first response text, then continue the SMS conversation until the lead is qualified or opted out.</p>
+    <div class="metrics">
+      <div class="metric"><strong>Problem solved</strong><span>Home-service businesses lose urgent leads when calls are missed. The agent responds quickly and keeps the conversation moving.</span></div>
+      <div class="metric"><strong>How it works</strong><span>Twilio call-status and SMS webhooks feed FastAPI handlers, Supabase stores state, and the AI intake asks only for missing fields.</span></div>
+      <div class="metric"><strong>How to evaluate</strong><span>Run a missed-call event, try complete/missing/STOP replies, and check whether owner alerts, confirmations, and suppression behavior change correctly.</span></div>
+    </div>
+    <div class="explain">The browser demo uses the production handler path with SMS in dry-run preview mode, so no real customer is contacted.</div>
   </header>
   <main>
     <section>
@@ -118,6 +138,32 @@ DEMO_HTML = """<!doctype html>
       <div id="snapshot">Loading sanitized table preview...</div>
     </section>
   </main>
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="https://sohaib.systems/" target="_blank" rel="noreferrer">Sohaib<span>.</span></a>
+        <p>AI Solutions Engineer building practical automation systems for home-service lead capture, follow-up, and customer communication.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Project</h4>
+        <ul class="footer-links-list">
+          <li><a href="https://github.com/HafizMuhammadSohaibUmar/Missed-Call-Text-Back-AI-Agent" target="_blank" rel="noreferrer">GitHub Repository</a></li>
+          <li><a href="/health" target="_blank" rel="noreferrer">Health Check</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Connect</h4>
+        <ul class="footer-links-list">
+          <li><a href="https://sohaib.systems/portfolio.html" target="_blank" rel="noreferrer">Project Portfolio</a></li>
+          <li><a href="mailto:hafizmuhammadsohaibumar@gmail.com">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>2026 Hafiz Muhammad Sohaib Umar</span>
+      <div class="footer-bottom-links"><a href="https://sohaib.systems/" target="_blank" rel="noreferrer">sohaib.systems</a><a href="https://github.com/HafizMuhammadSohaibUmar" target="_blank" rel="noreferrer">GitHub</a></div>
+    </div>
+  </footer>
   <script>
     function nextDemoPhone() { return "+1555" + String(Date.now()).slice(-7); }
     const phoneInput = document.getElementById("caller_phone");

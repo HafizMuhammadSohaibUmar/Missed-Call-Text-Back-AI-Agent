@@ -1,9 +1,11 @@
 """LeadPilot AI Missed Call Text-Back Agent."""
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from config import get_settings
 from db.supabase import supabase_client
@@ -28,6 +30,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="LeadPilot AI Missed Call Text-Back Agent", lifespan=lifespan)
+app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
 
 
 @app.get("/")

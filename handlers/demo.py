@@ -18,6 +18,7 @@ DEMO_HTML = """<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>LeadPilot AI Missed Call Text-Back Agent Demo</title>
+  <link rel="icon" type="image/jpeg" href="/static/sohaib-profile.jpg">
   <style>
     :root {
       color-scheme: light;
@@ -32,6 +33,14 @@ DEMO_HTML = """<!doctype html>
     }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background: radial-gradient(circle at top left, rgba(47,143,126,0.16), transparent 34%), var(--soft); color: var(--ink); }
+    .site-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 72px; padding: 0 clamp(18px, 5vw, 70px); border-bottom: 1px solid var(--line); background: rgba(10,9,8,0.92); backdrop-filter: blur(12px); }
+    .brand { display: flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; min-width: 0; }
+    .brand img { width: 38px; height: 38px; border-radius: 8px; object-fit: cover; border: 1px solid var(--line); }
+    .brand strong { display: block; font-size: 15px; }
+    .brand span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .nav-actions a { min-height: 38px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid var(--line); border-radius: 8px; background: #111009; color: var(--ink); text-decoration: none; font-size: 13px; font-weight: 700; }
+    .nav-actions a.primary { background: var(--gold); border-color: var(--gold); color: var(--soft); }
     header { padding: 34px clamp(18px, 5vw, 70px); border-bottom: 1px solid var(--line); background: rgba(17,16,9,0.92); }
     h1 { margin: 0 0 8px; font-size: clamp(30px, 4vw, 54px); letter-spacing: 0; }
     p { color: var(--muted); line-height: 1.55; }
@@ -69,10 +78,22 @@ DEMO_HTML = """<!doctype html>
     .footer-bottom { max-width:1180px; margin:0 auto; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; border-top:1px solid var(--line); padding-top:16px; }
     .footer-bottom-links { display:flex; gap:12px; flex-wrap:wrap; }
     .footer-bottom a { color:var(--ink); text-decoration:none; }
+    .snapshot-section { grid-column: 1 / -1; }
     @media (max-width: 880px) { main { grid-template-columns: 1fr; } .row, .metrics, .footer-top { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
+  <div class="site-header">
+    <a class="brand" href="https://sohaib.systems/" target="_blank" rel="noreferrer">
+      <img src="/static/sohaib-profile.jpg" alt="Sohaib Systems">
+      <span><strong>Missed Call Text-Back AI Agent</strong><span>sohaib.systems</span></span>
+    </a>
+    <div class="nav-actions">
+      <a href="https://github.com/HafizMuhammadSohaibUmar/Missed-Call-Text-Back-AI-Agent" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="/health" target="_blank" rel="noreferrer">Health</a>
+      <a class="primary" href="https://sohaib.systems/portfolio.html" target="_blank" rel="noreferrer">All Projects</a>
+    </div>
+  </div>
   <header>
     <span class="badge">Demo mode</span>
     <h1>LeadPilot AI Missed Call Text-Back Agent</h1>
@@ -133,6 +154,8 @@ DEMO_HTML = """<!doctype html>
       <h2>Agent Output</h2>
       <pre id="result">Run a missed call to start the demo.</pre>
       <div id="messages"></div>
+    </section>
+    <section class="snapshot-section">
       <h2>Safe Database Preview</h2>
       <p class="explain">Masked Supabase snapshot from the agent tables. Phone numbers and message bodies are not exposed.</p>
       <div id="snapshot">Loading sanitized table preview...</div>

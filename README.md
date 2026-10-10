@@ -204,3 +204,7 @@ Keep `SMS_DRY_RUN=true` for public browser demos. Set it to `false` only when Tw
 - The browser demo previews SMS instead of sending real messages.
 - Live SMS behavior depends on Twilio account configuration and regional messaging rules.
 - Jobber and Housecall Pro are not required for this agent; it only needs Twilio and Supabase.
+
+## n8n-Only Client Deployment
+
+This repository also includes an inactive, client-deployable n8n implementation that uses Twilio, Supabase, and a LiteLLM/OpenAI-compatible Mistral connection. See [`n8n-build/README.md`](n8n-build/README.md) for setup, credentials, webhook paths, schema, and testing instructions. The original FastAPI implementation remains unchanged.

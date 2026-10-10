@@ -104,6 +104,7 @@ DEMO_HTML = """<!doctype html>
       <div class="metric"><strong>How to evaluate</strong><span>Run a missed-call event, try complete/missing/STOP replies, and check whether owner alerts, confirmations, and suppression behavior change correctly.</span></div>
     </div>
     <div class="explain">The browser demo uses the production handler path with SMS in dry-run preview mode, so no real customer is contacted.</div>
+    <div class="explain"><strong>Two implementation modes:</strong> This live page demonstrates the custom-coded FastAPI agent. A separate, client-deployable n8n build is documented in the repository. <a href="https://github.com/HafizMuhammadSohaibUmar/Missed-Call-Text-Back-AI-Agent/tree/main/n8n-build" target="_blank" rel="noreferrer">View Workflow</a> · <a href="https://github.com/HafizMuhammadSohaibUmar/Missed-Call-Text-Back-AI-Agent/blob/main/n8n-build/README.md" target="_blank" rel="noreferrer">Read Technical Notes</a>. Production Twilio, Supabase, and model credentials are supplied by the client.</div>
   </header>
   <main>
     <section>

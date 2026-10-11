@@ -104,7 +104,7 @@ DEMO_HTML = """<!doctype html>
     <h1>LeadPilot AI Missed Call Text-Back Agent</h1>
     <p>Simulate a missed inbound call, generate the first response text, then continue the SMS conversation until the lead is qualified or opted out.</p>
     <div class="metrics">
-      <div class="metric"><strong>Problem solved</strong><span>Service businesses lose urgent leads when calls are missed. The agent responds quickly and keeps the conversation moving.</span></div>
+      <div class="metric"><strong>Problem solved</strong><span>Home-service businesses lose urgent leads when calls are missed. The agent responds quickly and keeps the conversation moving.</span></div>
       <div class="metric"><strong>How it works</strong><span>Twilio call-status and SMS webhooks feed FastAPI handlers, Supabase stores state, and the AI intake asks only for missing fields.</span></div>
       <div class="metric"><strong>How to evaluate</strong><span>Run a missed-call event, try complete/missing/STOP replies, and check whether owner alerts, confirmations, and suppression behavior change correctly.</span></div>
     </div>
@@ -171,7 +171,7 @@ DEMO_HTML = """<!doctype html>
     <div class="footer-top">
       <div class="footer-brand">
         <a href="https://sohaib.systems/" target="_blank" rel="noreferrer">Sohaib<span>.</span></a>
-        <p>AI Solutions Engineer building practical automation systems for service-business lead capture, follow-up, and customer communication.</p>
+        <p>AI Solutions Engineer building practical automation systems for home-service lead capture, follow-up, and customer communication.</p>
       </div>
       <div class="footer-col">
         <h4>Project</h4>
